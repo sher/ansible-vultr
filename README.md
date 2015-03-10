@@ -1,5 +1,6 @@
 # vupy
-Create/delete servers in Vultr.
+Ansible module for creating / deleting servers in Vultr.
+__At the moment the module supports only server creation and destruction.__
 
 ## Usage example
 
