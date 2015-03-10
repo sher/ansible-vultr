@@ -1,7 +1,9 @@
 # vupy
 Create/delete servers in Vultr.
 
-## Usage
+## Usage example
+
+This is the main playbook for dynamic inventory provisioning using Vultr.
 ```yaml
 ---
 - hosts: localhost
@@ -37,7 +39,9 @@ Create/delete servers in Vultr.
         unique_label: yes
       register: created_servers
       with_items: servers
-
+    # ------------------------------------------------
+    # - Append servers to corresponding groups
+    # ------------------------------------------------
     - name: Add Vultr hosts to inventory groups
       add_host:
         name: "{{ item.1.server.main_ip }}"
@@ -46,4 +50,53 @@ Create/delete servers in Vultr.
         internal_ip: "{{ item.1.server.internal_ip }}"
       when: item.1.server is defined
       with_indexed_items: created_servers.results
+
+# ------------------------------------------------
+# - Run below tasks on group 'cloud', which contains
+# - all servers being provisioned
+# ------------------------------------------------
+- hosts: cloud
+  remote_user: root
+
+  tasks:
+    - name: Wait for port 22 to become available
+      local_action: "wait_for port=22 host={{ inventory_hostname }}"
+
+    - name: Ping pong all hosts
+      ping:
+
+    - name: Ensure hostname is preserved in cloud-init
+      lineinfile: "dest=/etc/cloud/cloud.cfg regexp='^preserve_hostname' line='preserve_hostname: true' state=present"
+
+    - name: Set hostname in sysconfigs
+      lineinfile: dest=/etc/sysconfig/network regexp="^HOSTNAME" line='HOSTNAME="{{ hostvars[inventory_hostname].label }}"' state=present
+      register: hostname
+
+    - name: Set hosts FQDN
+      lineinfile: dest=/etc/hosts regexp=".*{{ hostvars[inventory_hostname].label }}$" line="{{ inventory_hostname }} {{ hostvars[inventory_hostname].label }}" state=present
+      register: fqdn
+
+    - name: Set hostname
+      hostname: name={{ hostvars[inventory_hostname].label }}
+      when: hostname.changed or fqdn.changed
+
+    - name: Configure eth1 (private network)
+      template: src=ifcfg-eth1.j2 dest=/etc/sysconfig/network-scripts/ifcfg-eth1
+      register: ifcfg_eth1
+
+    - name: Enable eth1 (private network)
+      service: name=network state=restarted
+      when: hostname.changed or fqdn.changed or ifcfg_eth1.changed
+```
+As stated in "Enable eth1 (private network)" task, below is the interface config file.
+this file should be localed in the same folder as the playbook.
+```ini
+# ifcgf-eth1.j2
+DEVICE="eth1"
+ONBOOT="yes"
+NM_CONTROLLED="no"
+BOOTPROTO="static"
+IPADDR="{{ hostvars[inventory_hostname].internal_ip }}"
+NETMASK="255.255.0.0"
+IPV6INIT="no"
 ```
