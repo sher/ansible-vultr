@@ -1,6 +1,13 @@
 # ansible-vultr
-Ansible module for creating / deleting servers in Vultr.
-__At the moment the module supports only server creation and destruction.__
+Ansible module for creating / deleting servers in [Vultr](http://www.vultr.com/?ref=6823697).
+At the moment the module supports __only__ server __creation and destruction__.
+
+## Installation
+```sh
+$ cd path-to-playbook-dir
+$ mkdir library
+$ git clone git@github.com:tundrax/ansible-vultr.git library/vultr
+```
 
 ## Usage example
 
