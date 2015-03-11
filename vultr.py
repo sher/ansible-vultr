@@ -4,7 +4,67 @@
 import sys
 import os
 import time
-import vultr_driver as driver
+import requests
+
+driver = None
+
+class Singleton(type):
+    def __call__(cls, *args, **kwargs):
+        try:
+            return cls.__instance
+        except AttributeError:
+            cls.__instance = super(Singleton, cls).__call__(*args, **kwargs)
+            return cls.__instance
+
+class Driver(object):
+    __metaclass__ = Singleton
+
+    API_KEY = None
+    API_BASE_URL = 'https://api.vultr.com/v1'
+
+    def __init__(self, API_KEY):
+        self.API_KEY = API_KEY
+
+    def yn(self, flag):
+        return 'yes' if flag else 'no'
+
+    def server_list(self):
+        json = requests.get(self.API_BASE_URL + '/server/list', params={'api_key': self.API_KEY}).json()
+        servers = []
+
+        if not json:
+            return servers
+
+        for SUBID, server in json.iteritems():
+            servers.append(server)
+
+        return servers
+
+    def server_create(self, label, vpsplanid, osid, dcid, sshkeyid, enable_private_network, enable_backups):
+        data = {'label': label, 'VPSPLANID': vpsplanid, 'OSID': osid, 'DCID': dcid,
+                'SSHKEYID': sshkeyid, 'enable_private_network': self.yn(enable_private_network),
+                enable_backups: self.yn(enable_backups)}
+
+        r = requests.post(self.API_BASE_URL + '/server/create', params={'api_key': self.API_KEY}, data=data)
+
+        if r.status_code > 200:
+            raise Exception('API Error', r.text)
+
+        json = r.json()
+        servers = server_list()
+
+        for server in servers:
+            if server['SUBID'] == json['SUBID']:
+                return server
+
+        return False
+
+    def server_destroy(self, SUBID):
+        r = requests.post(self.API_BASE_URL + '/server/destroy', params={'api_key': self.API_KEY}, data={'SUBID': SUBID})
+        return True if r.status_code == 200 else False
+
+    def server_start(self, SUBID):
+        return requests.post(self.API_BASE_URL + '/server/start', params={'api_key': self.API_KEY})
 
 class TimeoutError(Exception):
     def __init__(self, msg, id):
@@ -12,7 +72,6 @@ class TimeoutError(Exception):
         self.id = id
 
 class Server:
-
     def __init__(self, server_json):
         self.status = 'new'
         self.__dict__.update(server_json)
@@ -121,7 +180,8 @@ def core(module):
     state = module.params['state']
 
     if command == 'server':
-        driver.api_key = api_key
+        global driver
+        driver = Driver(api_key)
 
         if state in ('active', 'present'):
 
