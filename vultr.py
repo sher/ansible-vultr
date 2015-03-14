@@ -184,17 +184,11 @@ def core(module):
         driver = Driver(api_key)
 
         if state in ('active', 'present'):
-
-            # First, try to find a droplet by id.
             server = Server.find(SUBID=module.params['SUBID'])
 
-            # If we couldn't find the droplet and the user is allowing unique
-            # hostnames, then check to see if a droplet with the specified
-            # hostname already exists.
             if not server and module.params['unique_label']:
                 server = Server.find(label=getkeyordie('label'))
 
-            # If both of those attempts failed, then create a new droplet.
             if not server:
                 server = Server.add(
                     label=getkeyordie('label'),
@@ -217,12 +211,7 @@ def core(module):
             module.exit_json(changed=changed, ansible_facts=server.ansible_facts(), server=server.to_json())
 
         elif state in ('absent', 'deleted'):
-            # First, try to find a droplet by id.
             server = Server.find(module.params['SUBID'])
-
-            # If we couldn't find the droplet and the user is allowing unique
-            # hostnames, then check to see if a droplet with the specified
-            # hostname already exists.
             if not server and module.params['unique_label']:
                 server = Server.find(label=getkeyordie('label'))
 

@@ -58,7 +58,13 @@ This is the main playbook for dynamic inventory provisioning using Vultr.
         internal_ip: "{{ item.1.server.internal_ip }}"
       when: item.1.server is defined
       with_indexed_items: created_servers.results
+```
 
+## Known issues
+When you deploy a __new__ server on Vultr, you should wait until initialization finishes.
+In ansible we accomplish this using __wait_for__ module. Below, the first task that should run on all servers is **to wait for port 22** to become available.
+Once port 22 is active - ping all servers. At this step port 22 may have become available, but your ssh key has not been copied to authorized_keys yet. Hence you will get __denied access error__. Rerun the playbook 2-3 seconds later, all should go fine.
+```yaml
 # ------------------------------------------------
 # - Run below tasks on group 'cloud', which contains
 # - all servers being provisioned
