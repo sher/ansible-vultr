@@ -40,7 +40,7 @@ This is the main playbook for dynamic inventory provisioning using Vultr.
         state: "{{ item.state | default('present') }}"
         label: "{{ item.label }}"
         DCID: "{{ item.DCID | default(25) }}" # Tokyo
-        VPSPLANID: "{{ item.VPSPLANID | default(32) }}" # 1024MB / 20GB SSD
+        VPSPLANID: "{{ item.VPSPLANID | default(106) }}" # 1024MB / 20GB SSD
         OSID: "{{ item.OSID | default(167) }}" # CentOS 7x64
         SSHKEYID: "{{ item.SSHKEYID | default(YOUR_SSH_KEY_ID) }}"
         enable_private_network: yes
