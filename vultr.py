@@ -51,7 +51,7 @@ class Driver(object):
             raise Exception('API Error', r.text)
 
         json = r.json()
-        servers = server_list()
+        servers = self.server_list()
 
         for server in servers:
             if server['SUBID'] == json['SUBID']:
