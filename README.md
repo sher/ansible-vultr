@@ -1,5 +1,5 @@
 # ansible-vultr
-Ansible module for creating / deleting servers in [Vultr](http://www.vultr.com/?ref=6823697).
+Ansible module for managing servers on [Vultr](http://www.vultr.com/?ref=6823697).
 At the moment the module supports __only__ server __creation and destruction__.
 
 ## Installation
