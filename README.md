@@ -102,7 +102,7 @@ Once port 22 is active - ping all servers. At this step port 22 may have become 
       service: name=network state=restarted
       when: hostname.changed or fqdn.changed or ifcfg_eth1.changed
 ```
-As stated in "Enable eth1 (private network)" task, below is the interface config file.
+As stated in "Configure eth1 (private network)" task, below is the interface config file.
 This file should be located in the same folder as the playbook.
 ```ini
 # ifcgf-eth1.j2
