@@ -40,10 +40,13 @@ class Driver(object):
 
         return servers
 
-    def server_create(self, label, vpsplanid, osid, dcid, sshkeyid, enable_private_network, enable_backups):
-        data = {'label': label, 'VPSPLANID': vpsplanid, 'OSID': osid, 'DCID': dcid,
+    def server_create(self, label, vpsplanid, osid, isoid, dcid, sshkeyid, enable_private_network, enable_backups):
+        data = {'label': label, 'VPSPLANID': vpsplanid, 'ISOID': isoid, 'OSID': osid, 'DCID': dcid,
                 'SSHKEYID': sshkeyid, 'enable_private_network': self.yn(enable_private_network),
                 enable_backups: self.yn(enable_backups)}
+
+        # Clear out optional parameters
+        if not isoid:  del(data['ISOID'])
 
         r = requests.post(self.API_BASE_URL + '/server/create', params={'api_key': self.API_KEY}, data=data)
 
@@ -159,8 +162,8 @@ class Server:
         return False
 
     @classmethod
-    def add(cls, label, VPSPLANID, OSID, DCID, SSHKEYID=None, enable_private_network=False, enable_backups=False):
-        json = driver.server_create(label, VPSPLANID, OSID, DCID, SSHKEYID, enable_private_network, enable_backups)
+    def add(cls, label, VPSPLANID, OSID, DCID, ISOID, SSHKEYID=None, enable_private_network=False, enable_backups=False):
+        json = driver.server_create(label, VPSPLANID, OSID, ISOID, DCID, SSHKEYID, enable_private_network, enable_backups)
         return cls(json)
 
 def core(module):
@@ -194,6 +197,7 @@ def core(module):
                     label=getkeyordie('label'),
                     VPSPLANID=getkeyordie('VPSPLANID'),
                     OSID=getkeyordie('OSID'),
+                    ISOID=module.params['ISOID'],
                     DCID=getkeyordie('DCID'),
                     SSHKEYID=module.params['SSHKEYID'],
                     enable_private_network=module.params['enable_private_network'],
@@ -235,6 +239,7 @@ def main():
             SUBID = dict(aliases=['id'], type='int'),
             VPSPLANID = dict(type='int'),
             OSID = dict(type='int'),
+            ISOID = dict(type='int', default=0),
             DCID = dict(type='int'),
             SSHKEYID = dict(default=''),
             enable_private_network = dict(type='bool', default='no'),
