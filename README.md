@@ -60,6 +60,56 @@ This is the main playbook for dynamic inventory provisioning using Vultr.
       with_indexed_items: created_servers.results
 ```
 
+
+## Exmaple paybook for deploying a custom OS using a custom ISO
+
+You will need the ISOID for any custom ISOs you've already uploaded to Vultr.  These are retrievable via the following command
+
+```sh
+> curl -H 'API-Key: YOUR_AI_KEY' https://api.vultr.com/v1/iso/list
+```
+
+This is the main playbook for deploying a custom OS using a custom uploaded ISO.
+
+```yaml
+---
+- hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    api_key: YOUR_API_KEY
+    servers:
+      - { label: "example.com", group: "web", OSID: "159", ISOID: YOUR_ISO_ID }
+  tasks:
+    - name: Provision Vultr servers
+      vultr:
+        command: server
+        api_key: "{{ api_key }}"
+        state: "{{ item.state | default('present') }}"
+        label: "{{ item.label }}"
+        DCID: "{{ item.DCID | default(25) }}" # Tokyo
+        VPSPLANID: "{{ item.VPSPLANID | default(106) }}" # 1024MB / 20GB SSD
+        OSID: "{{ item.OSID | default(159) }}" # Custom OS
+		ISOID: "{{ item.ISOID | default(0) }}"
+        SSHKEYID: "{{ item.SSHKEYID | default(YOUR_SSH_KEY_ID) }}"
+        enable_private_network: yes
+        unique_label: yes
+      register: created_servers
+      with_items: servers
+    # ------------------------------------------------
+    # - Append servers to corresponding groups
+    # ------------------------------------------------
+    - name: Add Vultr hosts to inventory groups
+      add_host:
+        name: "{{ item.1.server.main_ip }}"
+        groups: "cloud,{{ servers[item.0].group }},{{ item.1.server.label }}"
+        label: "{{ item.1.server.label }}"
+        internal_ip: "{{ item.1.server.internal_ip }}"
+      when: item.1.server is defined
+      with_indexed_items: created_servers.results
+```
+
 ## Known issues
 When you deploy a __new__ server on Vultr, you should wait until initialization finishes.
 In ansible we accomplish this using __wait_for__ module. Below, the first task that should run on all servers is **to wait for port 22** to become available.
