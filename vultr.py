@@ -29,6 +29,7 @@ class Driver(object):
         return 'yes' if flag else 'no'
 
     def server_list(self):
+		# TODO - check response status, if unauthorized exit error
         json = requests.get(self.API_BASE_URL + '/server/list', params={'api_key': self.API_KEY}).json()
         servers = []
 
@@ -40,13 +41,21 @@ class Driver(object):
 
         return servers
 
-    def server_create(self, label, vpsplanid, osid, isoid, dcid, sshkeyid, enable_private_network, enable_backups):
-        data = {'label': label, 'VPSPLANID': vpsplanid, 'ISOID': isoid, 'OSID': osid, 'DCID': dcid,
+    def server_create(self, label, vpsplanid, osid, dcid, sshkeyid, enable_private_network, enable_backups, isoid=None, snapshotid=None, hostname=None, tag=None, reserved_ip_v4=None, auto_backups=None, ddos_protection=None, notify_activate=None):
+        # Required or non-null parameters
+        data = {'label': label, 'VPSPLANID': vpsplanid, 'OSID': osid, 'DCID': dcid,
                 'SSHKEYID': sshkeyid, 'enable_private_network': self.yn(enable_private_network),
                 enable_backups: self.yn(enable_backups)}
 
-        # Clear out optional parameters
-        if not isoid:  del(data['ISOID'])
+        # optional parameters
+        if isoid:  data['ISOID'] = isoid
+        if snapshotid:  data['SNAPSHOTID'] = snapshotid
+        if hostname:  data['hostname'] = hostname
+        if tag:  data['tag'] = tag
+        if reserved_ip_v4:  data['reserved_ip_v4'] = reserved_ip_v4
+        if auto_backups:  data['auto_backups'] = self.yn(auto_backups)
+        if ddos_protection:  data['ddos_protection'] = self.yn(ddos_protection)
+        if notify_activate:  data['notify_activate'] = self.yn(notify_activate)
 
         r = requests.post(self.API_BASE_URL + '/server/create', params={'api_key': self.API_KEY}, data=data)
 
@@ -162,8 +171,8 @@ class Server:
         return False
 
     @classmethod
-    def add(cls, label, VPSPLANID, OSID, DCID, ISOID, SSHKEYID=None, enable_private_network=False, enable_backups=False):
-        json = driver.server_create(label, VPSPLANID, OSID, ISOID, DCID, SSHKEYID, enable_private_network, enable_backups)
+    def add(cls, label, VPSPLANID, OSID, DCID, SSHKEYID=None, enable_private_network=False, enable_backups=False, ISOID=None, snapshotid=None, hostname=None, tag=None, reserved_ip_v4=None, auto_backups=None, ddos_protection=None, notify_activate=None):
+        json = driver.server_create(label, VPSPLANID, OSID, DCID, SSHKEYID, enable_private_network, enable_backups,ISOID,snapshotid,hostname,tag,reserved_ip_v4,auto_backups,ddos_protection,notify_activate)
         return cls(json)
 
 def core(module):
@@ -202,6 +211,13 @@ def core(module):
                     SSHKEYID=module.params['SSHKEYID'],
                     enable_private_network=module.params['enable_private_network'],
                     enable_backups=module.params['enable_backups'],
+                    snapshotid=module.params['snapshotid'],
+                    hostname=module.params['hostname'],
+                    tag=module.params['tag'],
+                    reserved_ip_v4=module.params['reserved_ip_v4'],
+                    auto_backups=module.params['auto_backups'],
+                    ddos_protection=module.params['ddos_protection'],
+                    notify_activate=module.params['notify_activate'],
                 )
 
             if server.is_running():
@@ -246,7 +262,14 @@ def main():
             enable_backups = dict(type='bool', default='no'),
             unique_label = dict(aliases=['unique_name'], type='bool', default='yes'),
             wait = dict(type='bool', default=True),
-            wait_timeout = dict(default=300, type='int')
+            wait_timeout = dict(default=300, type='int'),
+            notify_activate = dict(type='bool', default='no'),
+            ddos_protection = dict(type='bool', default='no'),
+            auto_backups = dict(type='bool', default='no'),
+            reserved_ip_v4 = dict(type='str', default=''),
+            tag = dict(type='str', default=''),
+            hostname = dict(type='str', default=''),
+            snapshotid = dict(type='str', default='')
         ),
         required_together = (
             ['VPSPLANID', 'DCID', 'OSID'],
