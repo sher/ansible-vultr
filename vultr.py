@@ -29,9 +29,13 @@ class Driver(object):
         return 'yes' if flag else 'no'
 
     def server_list(self):
-		# TODO - check response status, if unauthorized exit error
-        json = requests.get(self.API_BASE_URL + '/server/list', params={'api_key': self.API_KEY}).json()
+		r = requests.get(self.API_BASE_URL + '/server/list', params={'api_key': self.API_KEY}).json()
+
+        if r.status_code > 200:
+            raise Exception('API Error', r.text)
+
         servers = []
+        json = r.json()
 
         if not json:
             return servers
@@ -73,7 +77,11 @@ class Driver(object):
 
     def server_destroy(self, SUBID):
         r = requests.post(self.API_BASE_URL + '/server/destroy', params={'api_key': self.API_KEY}, data={'SUBID': SUBID})
-        return True if r.status_code == 200 else False
+
+        if r.status_code > 200:
+            raise Exception('API Error', r.text)
+
+        return True
 
     def server_start(self, SUBID):
         return requests.post(self.API_BASE_URL + '/server/start', params={'api_key': self.API_KEY})
