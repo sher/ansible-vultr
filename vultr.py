@@ -29,7 +29,7 @@ class Driver(object):
         return 'yes' if flag else 'no'
 
     def server_list(self):
-		r = requests.get(self.API_BASE_URL + '/server/list', params={'api_key': self.API_KEY}).json()
+		r = requests.get(self.API_BASE_URL + '/server/list', params={'api_key': self.API_KEY})
 
         if r.status_code > 200:
             raise Exception('API Error', r.text)
