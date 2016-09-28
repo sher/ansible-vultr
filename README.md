@@ -110,6 +110,18 @@ This is the main playbook for deploying a custom OS using a custom uploaded ISO.
       with_indexed_items: created_servers.results
 ```
 
+## Optional Parameters
+
+The following optional parameters may be passed along to the server command:
+ * ISOID
+ * hostname
+ * tag
+ * snapshotid
+ * reservered_ip_v4
+ * auto_backups
+ * ddos_protection
+ * notify_activate
+
 ## Known issues
 When you deploy a __new__ server on Vultr, you should wait until initialization finishes.
 In ansible we accomplish this using __wait_for__ module. Below, the first task that should run on all servers is **to wait for port 22** to become available.
