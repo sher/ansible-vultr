@@ -9,6 +9,8 @@ $ mkdir library
 $ git clone git@github.com:tundrax/ansible-vultr.git library/vultr
 ```
 
+_NOTE:_ Ansible 2.x users must set `ANSIBLE_LIBRARY=./library`.
+
 ## Usage example
 
 This is the main playbook for dynamic inventory provisioning using Vultr.
@@ -61,7 +63,7 @@ This is the main playbook for dynamic inventory provisioning using Vultr.
 ```
 
 
-## Exmaple paybook for deploying a custom OS using a custom ISO
+## Example playbook for deploying a custom OS using a custom ISO
 
 You will need the ISOID for any custom ISOs you've already uploaded to Vultr.  These are retrievable via the following command
 
