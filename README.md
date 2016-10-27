@@ -68,7 +68,7 @@ This is the main playbook for dynamic inventory provisioning using Vultr.
 You will need the ISOID for any custom ISOs you've already uploaded to Vultr.  These are retrievable via the following command
 
 ```sh
-> curl -H 'API-Key: YOUR_AI_KEY' https://api.vultr.com/v1/iso/list
+> curl -H 'API-Key: YOUR_API_KEY' https://api.vultr.com/v1/iso/list
 ```
 
 This is the main playbook for deploying a custom OS using a custom uploaded ISO.
