@@ -93,7 +93,7 @@ This is the main playbook for deploying a custom OS using a custom uploaded ISO.
         DCID: "{{ item.DCID | default(25) }}" # Tokyo
         VPSPLANID: "{{ item.VPSPLANID | default(106) }}" # 1024MB / 20GB SSD
         OSID: "{{ item.OSID | default(159) }}" # Custom OS
-		ISOID: "{{ item.ISOID | default(0) }}"
+        ISOID: "{{ item.ISOID | default(0) }}"
         SSHKEYID: "{{ item.SSHKEYID | default(YOUR_SSH_KEY_ID) }}"
         enable_private_network: yes
         unique_label: yes
