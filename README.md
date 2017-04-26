@@ -31,7 +31,7 @@ This is the main playbook for dynamic inventory provisioning using Vultr.
       - { label: "app2.example.com", group: "app" }
       - { label: "mdb1.example.com", group: "db" }
       # ------------------------------------------------
-      # - frotnend
+      # - frontend
       # ------------------------------------------------
       - { label: "example.com", group: "web" }
   tasks:
@@ -42,7 +42,7 @@ This is the main playbook for dynamic inventory provisioning using Vultr.
         state: "{{ item.state | default('present') }}"
         label: "{{ item.label }}"
         DCID: "{{ item.DCID | default(25) }}" # Tokyo
-        VPSPLANID: "{{ item.VPSPLANID | default(106) }}" # 1024MB / 20GB SSD
+        VPSPLANID: "{{ item.VPSPLANID | default(201) }}" # 1024MB / 25GB SSD
         OSID: "{{ item.OSID | default(167) }}" # CentOS 7x64
         SSHKEYID: "{{ item.SSHKEYID | default(YOUR_SSH_KEY_ID) }}"
         enable_private_network: yes
@@ -65,10 +65,11 @@ This is the main playbook for dynamic inventory provisioning using Vultr.
 
 ## Example playbook for deploying a custom OS using a custom ISO
 
-You will need the ISOID for any custom ISOs you've already uploaded to Vultr.  These are retrievable via the following command
+You will need the ISOID for any custom ISOs you've already uploaded to Vultr.
+These are retrievable via the following command:
 
 ```sh
-> curl -H 'API-Key: YOUR_API_KEY' https://api.vultr.com/v1/iso/list
+$ curl -H 'API-Key: YOUR_API_KEY' https://api.vultr.com/v1/iso/list
 ```
 
 This is the main playbook for deploying a custom OS using a custom uploaded ISO.
@@ -91,7 +92,7 @@ This is the main playbook for deploying a custom OS using a custom uploaded ISO.
         state: "{{ item.state | default('present') }}"
         label: "{{ item.label }}"
         DCID: "{{ item.DCID | default(25) }}" # Tokyo
-        VPSPLANID: "{{ item.VPSPLANID | default(106) }}" # 1024MB / 20GB SSD
+        VPSPLANID: "{{ item.VPSPLANID | default(201) }}" # 1024MB / 25GB SSD
         OSID: "{{ item.OSID | default(159) }}" # Custom OS
         ISOID: "{{ item.ISOID | default(0) }}"
         SSHKEYID: "{{ item.SSHKEYID | default(YOUR_SSH_KEY_ID) }}"
@@ -127,7 +128,7 @@ The following optional parameters may be passed along to the server command:
 ## Known issues
 When you deploy a __new__ server on Vultr, you should wait until initialization finishes.
 In ansible we accomplish this using __wait_for__ module. Below, the first task that should run on all servers is **to wait for port 22** to become available.
-Once port 22 is active - ping all servers. At this step port 22 may have become available, but your ssh key has not been copied to authorized_keys yet. Hence you will get __denied access error__. Rerun the playbook 2-3 seconds later, all should go fine.
+Once port 22 is active - ping all servers. At this step port 22 may have become available, but your ssh key has not been copied to `authorized_keys` yet. Hence you will get __denied access error__. Rerun the playbook 2-3 seconds later, all should go fine.
 ```yaml
 # ------------------------------------------------
 # - Run below tasks on group 'cloud', which contains
