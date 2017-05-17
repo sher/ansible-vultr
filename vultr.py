@@ -57,9 +57,9 @@ class Driver(object):
         if hostname:  data['hostname'] = hostname
         if tag:  data['tag'] = tag
         if reserved_ip_v4:  data['reserved_ip_v4'] = reserved_ip_v4
-        if auto_backups:  data['auto_backups'] = self.yn(auto_backups)
-        if ddos_protection:  data['ddos_protection'] = self.yn(ddos_protection)
-        if notify_activate:  data['notify_activate'] = self.yn(notify_activate)
+        data['auto_backups'] = self.yn(auto_backups)
+        data['ddos_protection'] = self.yn(ddos_protection)
+        data['notify_activate'] = self.yn(notify_activate)
 
         r = requests.post(self.API_BASE_URL + '/server/create', params={'api_key': self.API_KEY}, data=data)
 
