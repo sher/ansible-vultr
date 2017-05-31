@@ -154,6 +154,8 @@ class Server:
             label=self.label,
             main_ip=self.main_ip,
             internal_ip=self.internal_ip,
+            ip_address=self.main_ip,
+            private_ip_address=self.internal_ip,
         )
 
     @classmethod
