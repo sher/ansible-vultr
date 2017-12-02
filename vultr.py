@@ -29,7 +29,7 @@ class Driver(object):
         return 'yes' if flag else 'no'
 
     def server_list(self):
-        r = requests.get(self.API_BASE_URL + '/server/list', params={'api_key': self.API_KEY})
+        r = requests.get(self.API_BASE_URL + '/server/list', params={'api_key': self.API_KEY}, timeout=None)
 
         if r.status_code > 200:
             raise Exception('API Error', r.text)
@@ -45,7 +45,7 @@ class Driver(object):
 
         return servers
 
-    def server_create(self, label, vpsplanid, osid, dcid, sshkeyid, enable_private_network, enable_backups, isoid=None, snapshotid=None, hostname=None, tag=None, reserved_ip_v4=None, auto_backups=None, ddos_protection=None, notify_activate=None):
+    def server_create(self, label, vpsplanid, osid, dcid, sshkeyid, enable_private_network, enable_backups, isoid=None, snapshotid=None, hostname=None, tag=None, reserved_ip_v4=None, auto_backups=None, ddos_protection=None, notify_activate=None, userdata=None, enable_ipv6=None, scriptid=None):
         # Required or non-null parameters
         data = {'label': label, 'VPSPLANID': vpsplanid, 'OSID': osid, 'DCID': dcid,
                 'SSHKEYID': sshkeyid, 'enable_private_network': self.yn(enable_private_network),
@@ -60,8 +60,11 @@ class Driver(object):
         data['auto_backups'] = self.yn(auto_backups)
         data['ddos_protection'] = self.yn(ddos_protection)
         data['notify_activate'] = self.yn(notify_activate)
+        if enable_ipv6: data['enable_ipv6'] = self.yn(enable_ipv6)
+        if scriptid: data['SCRIPTID'] = scriptid
+        if userdata: data['userdata'] = userdata
 
-        r = requests.post(self.API_BASE_URL + '/server/create', params={'api_key': self.API_KEY}, data=data)
+        r = requests.post(self.API_BASE_URL + '/server/create', params={'api_key': self.API_KEY}, data=data, timeout=None)
 
         if r.status_code > 200:
             raise Exception('API Error', r.text)
@@ -85,6 +88,112 @@ class Driver(object):
 
     def server_start(self, SUBID):
         return requests.post(self.API_BASE_URL + '/server/start', params={'api_key': self.API_KEY})
+
+    def server_stop(self, SUBID):
+        return requests.post(self.API_BASE_URL + '/server/stop', params={'api_key': self.API_KEY})
+
+    def server_reboot(self, SUBID):
+        return requests.post(self.API_BASE_URL + '/server/reboot', params={'api_key': self.API_KEY})
+
+    def startupscript_list(self):
+        r = requests.get(self.API_BASE_URL + '/startupscript/list', params={'api_key': self.API_KEY})
+        if r.status_code > 200:
+            raise Exception('API Error', r.text)
+
+        startupscripts = []
+        json = r.json()
+
+        if not json:
+            return startupscripts
+
+        for SCRIPTID, ss in json.iteritems():
+            startupscripts.append(ss)
+        
+        return startupscripts
+
+    def startupscript_update(self, SCRIPTID, label, script):
+        data = {'SCRIPTID':SCRIPTID, 'name':label, 'script':script}
+        r = requests.post(self.API_BASE_URL + '/startupscript/update', params={'api_key': self.API_KEY}, data=data, timeout=None)
+        if r.status_code > 200:
+            raise Exception('API Error', r.text)
+        return True
+
+    def startupscript_find_by_id(self, SCRIPTID):
+        startupscripts = self.startupscript_list()
+        for ss in startupscripts:
+            if ss['SCRIPTID'] == SCRIPTID:
+                return ss
+        return False
+
+    def startupscript_find(self, label, ttype=None):
+        if not ttype: ttype = 'boot'
+        startupscripts = self.startupscript_list()
+        for ss in startupscripts:
+            if ss['name'] == label and ss['type'] == ttype:
+                return ss
+        return False
+
+    def startupscript_ensure(self, label, script, ttype=None):
+        if not ttype: ttype = 'boot'
+        startupscripts = self.startupscript_list()
+        for ss in startupscripts:
+            if ss['name'] == label and ss['type'] == ttype:
+                ss['updated'] = False
+                if ss['script'] != script:
+                    self.startupscript_update(ss['SCRIPTID'], label, script)
+                    ss['updated'] = True
+                return ss
+        return False
+
+    def sshkey_list(self):
+        r = requests.get(self.API_BASE_URL + '/sshkey/list', params={'api_key': self.API_KEY})
+        if r.status_code > 200:
+            raise Exception('API Error', r.text)
+
+        sshkeys = []
+        json = r.json()
+
+        if not json:
+            return sshkeys
+
+        for SSHKEYID, ss in json.iteritems():
+            sshkeys.append(ss)
+        
+        return sshkeys
+
+    def sshkey_update(self, SSHKEYID, label, sshkey):
+        data = {'SSHKEYID':SSHKEYID, 'name':label, 'ssh_key':sshkey}
+        r = requests.post(self.API_BASE_URL + '/sshkey/update', params={'api_key': self.API_KEY}, data=data, timeout=None)
+        if r.status_code > 200:
+            raise Exception('API Error', r.text)
+        return True
+
+    def sshkey_find_by_id(self, SSHKEYID):
+        sshkeys = self.sshkey_list()
+        for ss in sshkeys:
+            if ss['SSHKEYID'] == SSHKEYID:
+                return ss
+        return False
+
+    def sshkey_find(self, label, ttype=None):
+        if not ttype: ttype = 'boot'
+        sshkeys = self.sshkey_list()
+        for ss in sshkeys:
+            if ss['name'] == label:
+                return ss
+        return False
+
+    def sshkey_ensure(self, label, sshkey, ttype=None):
+        if not ttype: ttype = 'boot'
+        sshkeys = self.sshkey_list()
+        for ss in sshkeys:
+            if ss['name'] == label:
+                ss['updated'] = False
+                if ss['ssh_key'] != sshkey:
+                    self.sshkey_update(ss['SSHKEYID'], label, sshkey)
+                    ss['updated'] = True
+                return ss
+        return False
 
 class TimeoutError(Exception):
     def __init__(self, msg, id):
@@ -112,6 +221,16 @@ class Server:
         assert self.status == 'active', 'The server is not active.'
         assert self.power_status != 'running', 'Server already running.'
         driver.server_start(self.SUBID)
+
+    def stop(self):
+        assert self.status == 'active', 'The server is not active.'
+        assert self.power_status == 'running', 'Server is not running.'
+        driver.server_stop(self.SUBID)
+
+    def reboot(self):
+        assert self.status == 'active', 'The server is not active.'
+        assert self.power_status != 'running', 'Server already running.'
+        driver.server_reboot(self.SUBID)
 
     def ensure_running(self, wait=True, wait_timeout=300):
         if self.is_running():
@@ -142,9 +261,14 @@ class Server:
             DCID=self.DCID,
             VPSPLANID=self.VPSPLANID,
             main_ip=self.main_ip,
+            main_gw=self.gateway_v4,
+            main_mask=self.netmask_v4,
+            v6_main_ip=self.v6_main_ip,
+            v6_network=self.v6_network,
             internal_ip=self.internal_ip,
             status=self.status,
             power_status=self.power_status,
+            default_password=self.default_password,
             location=self.location,
             os=self.os
         )
@@ -181,8 +305,66 @@ class Server:
         return False
 
     @classmethod
-    def add(cls, label, VPSPLANID, OSID, DCID, SSHKEYID=None, enable_private_network=False, enable_backups=False, ISOID=None, snapshotid=None, hostname=None, tag=None, reserved_ip_v4=None, auto_backups=None, ddos_protection=None, notify_activate=None):
-        json = driver.server_create(label, VPSPLANID, OSID, DCID, SSHKEYID, enable_private_network, enable_backups,ISOID,snapshotid,hostname,tag,reserved_ip_v4,auto_backups,ddos_protection,notify_activate)
+    def add(cls, label, VPSPLANID, OSID, DCID, SSHKEYID=None, enable_private_network=False, enable_backups=False, ISOID=None, snapshotid=None, hostname=None, tag=None, reserved_ip_v4=None, auto_backups=None, ddos_protection=None, notify_activate=None, userdata=None, scriptid=None, enable_ipv6=None):
+        json = driver.server_create(label, VPSPLANID, OSID, DCID, SSHKEYID, enable_private_network, enable_backups,ISOID,snapshotid,hostname,tag,reserved_ip_v4,auto_backups,ddos_protection,notify_activate, userdata, scriptid, enable_ipv6)
+        return cls(json)
+
+class Startupscript:
+    def __init__(self, startupscript_json):
+        self.date_created = None
+        self.__dict__.update(startupscript_json)
+
+    def update_attrs(self, attrs=None):
+        if attrs:
+            for k, v in attrs.iteritems():
+                setattr(self, k, v)
+        else:
+            json = Startupscript.find(self.SCRIPTID).to_json()
+            if json:
+                self.update_attrs(json)
+    
+    @classmethod
+    def findByID(cls, SCRIPTID):
+        json = driver.startupscript_find_by_id(SCRIPTID)
+        return cls(json)
+    
+    @classmethod
+    def find(cls, label, ttype=None):
+        json = driver.startupscript_find(label, ttype)
+        return cls(json)
+
+    @classmethod
+    def ensure(cls, label, script, ttype=None):
+        json = driver.startupscript_ensure(label, script, ttype)
+        return cls(json)
+
+class Sshkey:
+    def __init__(self, sshkey_json):
+        self.date_created = None
+        self.__dict__.update(sshkey_json)
+
+    def update_attrs(self, attrs=None):
+        if attrs:
+            for k, v in attrs.iteritems():
+                setattr(self, k, v)
+        else:
+            json = Sshkey.find(self.SSHKEYID).to_json()
+            if json:
+                self.update_attrs(json)
+    
+    @classmethod
+    def findByID(cls, SSHKEYID):
+        json = driver.sshkey_find_by_id(SSHKEYID)
+        return cls(json)
+    
+    @classmethod
+    def find(cls, label, ttype=None):
+        json = driver.sshkey_find(label, ttype)
+        return cls(json)
+
+    @classmethod
+    def ensure(cls, label, sshkey, ttype=None):
+        json = driver.sshkey_ensure(label, sshkey, ttype)
         return cls(json)
 
 def core(module):
@@ -200,6 +382,38 @@ def core(module):
     changed = True
     command = module.params['command']
     state = module.params['state']
+
+    if command == 'sshkey':
+        global driver
+        driver = Driver(api_key)
+        action = module.params['action']
+        changed = False
+        if action == 'getid':
+            ss = Sshkey.find(label=getkeyordie('label'))
+            if ss.SSHKEYID: changed=True
+            module.exit_json(changed=changed, sshkeyid=ss.SSHKEYID)
+        if action == 'ensure':
+            ss = Sshkey.ensure(
+                label=getkeyordie('label'),
+                sshkey=getkeyordie('sshkey'))
+            if ss.updated: changed=True
+            module.exit_json(changed=changed, sshkeyid=ss.SSHKEYID)
+
+    if command == 'startupscript':
+        global driver
+        driver = Driver(api_key)
+        action = module.params['action']
+        changed = False
+        if action == 'getid':
+            ss = Startupscript.find(label=getkeyordie('label'))
+            if ss.SCRIPTID: changed=True
+            module.exit_json(changed=changed, scriptid=ss.SCRIPTID)
+        if action == 'ensure':
+            ss = Startupscript.ensure(
+                label=getkeyordie('label'),
+                script=getkeyordie('script'))
+            if ss.updated: changed=True
+            module.exit_json(changed=changed, scriptid=ss.SCRIPTID)
 
     if command == 'server':
         global driver
@@ -221,6 +435,7 @@ def core(module):
                     SSHKEYID=module.params['SSHKEYID'],
                     enable_private_network=module.params['enable_private_network'],
                     enable_backups=module.params['enable_backups'],
+                    enable_ipv6=module.params['enable_ipv6'],
                     snapshotid=module.params['snapshotid'],
                     hostname=module.params['hostname'],
                     tag=module.params['tag'],
@@ -228,6 +443,8 @@ def core(module):
                     auto_backups=module.params['auto_backups'],
                     ddos_protection=module.params['ddos_protection'],
                     notify_activate=module.params['notify_activate'],
+                    userdata=module.params['userdata'],
+                    SCRIPTID=module.params['SCRIPTID'],
                 )
 
             if server.is_running():
@@ -258,27 +475,33 @@ def core(module):
 def main():
     module = AnsibleModule(
         argument_spec = dict(
-            command = dict(choices=['server', 'ssh'], default='server'),
+            command = dict(choices=['server', 'ssh', 'dns', 'startupscript', 'sshkey'], default='server'),
+            action = dict(type='str', default=''),
             state = dict(choices=['active', 'present', 'pending', 'absent'], default='present'),
             api_key = dict(no_log=True),
             label = dict(aliases=['name'], type='str'),
+            hostname = dict(type='str', default=''),
             SUBID = dict(aliases=['id'], type='int'),
             VPSPLANID = dict(type='int'),
             OSID = dict(type='int'),
             ISOID = dict(type='int', default=0),
             DCID = dict(type='int'),
             SSHKEYID = dict(default=''),
+            SCRIPTID = dict(type='str', default=''),
+            userdata = dict(type='str', default=''),
             enable_private_network = dict(type='bool', default='no'),
             enable_backups = dict(type='bool', default='no'),
+            enable_ipv6 = dict(type='bool', default='yes'),
             unique_label = dict(aliases=['unique_name'], type='bool', default='yes'),
             wait = dict(type='bool', default=True),
-            wait_timeout = dict(default=300, type='int'),
+            wait_timeout = dict(default=30000, type='int'),
             notify_activate = dict(type='bool', default='no'),
             ddos_protection = dict(type='bool', default='no'),
             auto_backups = dict(type='bool', default='no'),
             reserved_ip_v4 = dict(type='str', default=''),
             tag = dict(type='str', default=''),
-            hostname = dict(type='str', default=''),
+            script = dict(type='str', default=''),
+            sshkey = dict(type='str', default=''),
             snapshotid = dict(type='str', default='')
         ),
         required_together = (
