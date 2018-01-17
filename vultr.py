@@ -80,23 +80,30 @@ class Driver(object):
 
     def server_destroy(self, SUBID):
         r = requests.post(self.API_BASE_URL + '/server/destroy', params={'api_key': self.API_KEY}, data={'SUBID': SUBID})
-
         if r.status_code > 200:
             raise Exception('API Error', r.text)
-
         return True
 
     def server_start(self, SUBID):
-        return requests.post(self.API_BASE_URL + '/server/start', params={'api_key': self.API_KEY})
+        r = requests.post(self.API_BASE_URL + '/server/start', params={'api_key': self.API_KEY}, data={'SUBID': SUBID})
+        if r.status_code > 200:
+            raise Exception('API Error', r.text)
+        return True
 
     def server_stop(self, SUBID):
-        return requests.post(self.API_BASE_URL + '/server/stop', params={'api_key': self.API_KEY})
+        r = requests.post(self.API_BASE_URL + '/server/stop', params={'api_key': self.API_KEY}, data={'SUBID': SUBID})
+        if r.status_code > 200:
+            raise Exception('API Error', r.text)
+        return True
 
     def server_reboot(self, SUBID):
-        return requests.post(self.API_BASE_URL + '/server/reboot', params={'api_key': self.API_KEY})
+        r = requests.post(self.API_BASE_URL + '/server/reboot', params={'api_key': self.API_KEY}, data={'SUBID': SUBID})
+        if r.status_code > 200:
+            raise Exception('API Error', r.text)
+        return True
 
     def startupscript_list(self):
-        r = requests.get(self.API_BASE_URL + '/startupscript/list', params={'api_key': self.API_KEY})
+        r = requests.get(self.API_BASE_URL + '/startupscript/list', params={'api_key': self.API_KEY}, data={'SUBID': SUBID})
         if r.status_code > 200:
             raise Exception('API Error', r.text)
 
