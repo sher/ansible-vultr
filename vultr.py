@@ -312,8 +312,8 @@ class Server:
         return False
 
     @classmethod
-    def add(cls, label, VPSPLANID, OSID, DCID, SSHKEYID=None, enable_private_network=False, enable_backups=False, ISOID=None, snapshotid=None, hostname=None, tag=None, reserved_ip_v4=None, auto_backups=None, ddos_protection=None, notify_activate=None, userdata=None, scriptid=None, enable_ipv6=None):
-        json = driver.server_create(label, VPSPLANID, OSID, DCID, SSHKEYID, enable_private_network, enable_backups,ISOID,snapshotid,hostname,tag,reserved_ip_v4,auto_backups,ddos_protection,notify_activate, userdata, scriptid, enable_ipv6)
+    def add(cls, label, VPSPLANID, OSID, DCID, SSHKEYID=None, enable_private_network=False, enable_backups=False, ISOID=None, snapshotid=None, hostname=None, tag=None, reserved_ip_v4=None, auto_backups=None, ddos_protection=None, notify_activate=None, userdata=None, SCRIPTID=None, enable_ipv6=None):
+        json = driver.server_create(label, VPSPLANID, OSID, DCID, SSHKEYID, enable_private_network, enable_backups,ISOID,snapshotid,hostname,tag,reserved_ip_v4,auto_backups,ddos_protection,notify_activate, userdata, SCRIPTID, enable_ipv6)
         return cls(json)
 
 class Startupscript:
