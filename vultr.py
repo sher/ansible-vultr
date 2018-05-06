@@ -103,7 +103,7 @@ class Driver(object):
         return True
 
     def startupscript_list(self):
-        r = requests.get(self.API_BASE_URL + '/startupscript/list', params={'api_key': self.API_KEY}, data={'SUBID': SUBID})
+        r = requests.get(self.API_BASE_URL + '/startupscript/list', params={'api_key': self.API_KEY})
         if r.status_code > 200:
             raise Exception('API Error', r.text)
 
