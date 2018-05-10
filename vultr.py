@@ -45,15 +45,15 @@ class Driver(object):
 
         return servers
 
-    def server_create(self, label, vpsplanid, osid, dcid, sshkeyid, enable_private_network, enable_backups, isoid=None, snapshotid=None, hostname=None, tag=None, reserved_ip_v4=None, auto_backups=None, ddos_protection=None, notify_activate=None, userdata=None, enable_ipv6=None, scriptid=None):
+    def server_create(self, label, VPSPLANID, OSID, DCID, SSHKEYID, enable_private_network, enable_backups, ISOID=None, SNAPSHOTID=None, hostname=None, tag=None, reserved_ip_v4=None, auto_backups=None, ddos_protection=None, notify_activate=None, userdata=None, enable_ipv6=None, SCRIPTID=None):
         # Required or non-null parameters
-        data = {'label': label, 'VPSPLANID': vpsplanid, 'OSID': osid, 'DCID': dcid,
-                'SSHKEYID': sshkeyid, 'enable_private_network': self.yn(enable_private_network),
+        data = {'label': label, 'VPSPLANID': VPSPLANID, 'OSID': OSID, 'DCID': DCID,
+                'SSHKEYID': SSHKEYID, 'enable_private_network': self.yn(enable_private_network),
                 enable_backups: self.yn(enable_backups)}
 
         # optional parameters
-        if isoid:  data['ISOID'] = isoid
-        if snapshotid:  data['SNAPSHOTID'] = snapshotid
+        if ISOID:  data['ISOID'] = ISOID
+        if SNAPSHOTID:  data['SNAPSHOTID'] = SNAPSHOTID
         if hostname:  data['hostname'] = hostname
         if tag:  data['tag'] = tag
         if reserved_ip_v4:  data['reserved_ip_v4'] = reserved_ip_v4
@@ -61,7 +61,7 @@ class Driver(object):
         data['ddos_protection'] = self.yn(ddos_protection)
         data['notify_activate'] = self.yn(notify_activate)
         if enable_ipv6: data['enable_ipv6'] = self.yn(enable_ipv6)
-        if scriptid: data['SCRIPTID'] = scriptid
+        if SCRIPTID: data['SCRIPTID'] = SCRIPTID
         if userdata: data['userdata'] = userdata
 
         r = requests.post(self.API_BASE_URL + '/server/create', params={'api_key': self.API_KEY}, data=data, timeout=None)
@@ -312,8 +312,8 @@ class Server:
         return False
 
     @classmethod
-    def add(cls, label, VPSPLANID, OSID, DCID, SSHKEYID=None, enable_private_network=False, enable_backups=False, ISOID=None, snapshotid=None, hostname=None, tag=None, reserved_ip_v4=None, auto_backups=None, ddos_protection=None, notify_activate=None, userdata=None, SCRIPTID=None, enable_ipv6=None):
-        json = driver.server_create(label, VPSPLANID, OSID, DCID, SSHKEYID, enable_private_network, enable_backups,ISOID,snapshotid,hostname,tag,reserved_ip_v4,auto_backups,ddos_protection,notify_activate, userdata, SCRIPTID, enable_ipv6)
+    def add(cls, label, VPSPLANID, OSID, DCID, SSHKEYID=None, enable_private_network=False, enable_backups=False, ISOID=None, SNAPSHOTID=None, hostname=None, tag=None, reserved_ip_v4=None, auto_backups=None, ddos_protection=None, notify_activate=None, userdata=None, SCRIPTID=None, enable_ipv6=None):
+        json = driver.server_create(label, VPSPLANID, OSID, DCID, SSHKEYID, enable_private_network, enable_backups,ISOID,SNAPSHOTID,hostname,tag,reserved_ip_v4,auto_backups,ddos_protection,notify_activate, userdata, SCRIPTID, enable_ipv6)
         return cls(json)
 
 class Startupscript:
@@ -443,7 +443,7 @@ def core(module):
                     enable_private_network=module.params['enable_private_network'],
                     enable_backups=module.params['enable_backups'],
                     enable_ipv6=module.params['enable_ipv6'],
-                    snapshotid=module.params['snapshotid'],
+                    SNAPSHOTID=module.params['SNAPSHOTID'],
                     hostname=module.params['hostname'],
                     tag=module.params['tag'],
                     reserved_ip_v4=module.params['reserved_ip_v4'],
@@ -509,7 +509,7 @@ def main():
             tag = dict(type='str', default=''),
             script = dict(type='str', default=''),
             sshkey = dict(type='str', default=''),
-            snapshotid = dict(type='str', default='')
+            SNAPSHOTID = dict(type='str', default='')
         ),
         required_together = (
             ['VPSPLANID', 'DCID', 'OSID'],
